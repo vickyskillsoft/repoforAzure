@@ -1,0 +1,41 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  azureServiceConnection: 'mc-cicd-demo-service-conn'
+  webAppName: 'mc-cicd-demo-app'
+  projectRoot: '$(System.DefaultWorkingDirectory)'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.11'
+  displayName: 'Use Python 3.11'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  workingDirectory: '$(projectRoot)'
+  displayName: 'Install dependencies'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(projectRoot)'
+    includeRootFolder: false
+    archiveType: zip
+    archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+    replaceExistingArchive: true
+  displayName: 'Archive app'
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: '$(azureServiceConnection)'
+    appType: 'webAppLinux'
+    appName: '$(webAppName)'
+    package: '$(Build.ArtifactStagingDirectory)/app.zip'
+    runtimeStack: 'PYTHON|3.11'
+    startUpCommand: 'gunicorn --bind=0.0.0.0 --timeout 600 app:app'
+  displayName: 'Deploy to Azure App Service'
