@@ -6,7 +6,7 @@ pool:
 
 variables:
   azureServiceConnection: 'mc-cicd-demo-service-conn'
-  webAppName: 'mc-cicd-demo-app'
+  webAppName: 'AzureCICDDemo'
   projectRoot: '$(System.DefaultWorkingDirectory)'
 
 steps:
